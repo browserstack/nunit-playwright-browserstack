@@ -1,0 +1,10 @@
+bin/
+obj/
+log/
+.config/
+.browserstack/
+.idea/
+.vs/
+*.user
+*.suo
+*.bak
