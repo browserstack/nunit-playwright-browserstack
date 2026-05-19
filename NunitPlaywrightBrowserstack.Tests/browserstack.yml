@@ -60,6 +60,10 @@ platforms:
 # The number of parallel threads to be used for each platform set.
 # BrowserStack's SDK runner will select the best strategy based on the configured value
 #
+# Example 1 - If you have configured 3 platforms and set `parallelsPerPlatform` as 2, a total of 6 (2 * 3) parallel threads will be used on BrowserStack
+#
+# Example 2 - If you have configured 1 platform and set `parallelsPerPlatform` as 5, a total of 5 (1 * 5) parallel threads will be used on BrowserStack
+#
 # This sample sets parallelsPerPlatform: 2 to demonstrate NUnit's fixture-level
 # parallelism on top of the SDK's per-platform fan-out: 4 platforms x 2 fixtures
 # (BStackDemoCart + BStackLocalSample) = 8 concurrent sessions per `dotnet test`.
