@@ -1,11 +1,12 @@
 namespace NunitPlaywrightBrowserstack.Tests;
 
-// Mirrors browserstack/csharp-playwright-browserstack -> SampleLocalTest.cs:
+// Mirrors xunit-reqnroll-playwright-browserstack's Features/LocalSample.feature
+// + StepDefinitions/LocalSampleSteps.cs:
 //   page.GotoAsync("http://bs-local.com:45454/")  +  title.Contains("BrowserStack Local")
 //
 // Requires:
 //   * browserstack.yml has `browserstackLocal: true`
-//   * a local HTTP server is serving a page with title "BrowserStack Local Test"
+//   * a local HTTP server is serving a page with title containing "BrowserStack Local"
 //     on port 45454 (the sanity workflow stands up `python -m http.server 45454`
 //     against a one-file index.html harness).
 [TestFixture]

@@ -2,11 +2,13 @@ using Microsoft.Playwright;
 
 namespace NunitPlaywrightBrowserstack.Tests;
 
-// Base [SetUp]/[TearDown] for every NUnit fixture that needs an IPage.
-// Customer code calls `pw.Chromium.LaunchAsync()` unconditionally; the
-// BrowserStack SDK rewrites the launch at runtime to route to the per-platform
-// browser configured in browserstack.yml (chrome / playwright-webkit /
-// playwright-firefox / edge). No Chromium.ConnectAsync(wss_url) plumbing here.
+// NUnit equivalent of xunit-reqnroll-playwright-browserstack's
+// Hooks/PlaywrightHooks.cs (BeforeScenario / AfterScenario) -- a per-test
+// fixture that creates an IPage. Customer code calls
+// `pw.Chromium.LaunchAsync()` unconditionally; the BrowserStack SDK rewrites
+// the launch at runtime to route to the per-platform browser configured in
+// browserstack.yml (chrome / playwright-webkit / playwright-firefox / edge).
+// No Chromium.ConnectAsync(wss_url) plumbing here.
 public abstract class PlaywrightFixtureBase
 {
     private IPlaywright? _pw;
