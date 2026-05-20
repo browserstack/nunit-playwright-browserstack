@@ -1,0 +1,121 @@
+# Sanity workflow that verifies the NUnit + Playwright BrowserStack SDK sample
+# against a full commit id, mirroring browserstack/xunit-reqnroll-playwright-browserstack.
+# Two test runs (yml ships with browserstackLocal: true; both runs benefit from it):
+#   1. Public bstackdemo scenario  (Category=sample-test).
+#   2. BrowserStack Local scenario (Category=sample-local-test) — a python http.server
+#      hosts a tiny title-matching page on port 45454, the SDK starts the tunnel,
+#      and the test asserts that the cloud browser sees that page through bs-local.com.
+
+name: NUnit Playwright SDK sanity workflow on workflow_dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'The full commit id to build'
+        required: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  sanity:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        dotnet: ['8.0.x']
+        os: [windows-latest, macos-latest]
+    name: NUnit Repo ${{ matrix.dotnet }} - ${{ matrix.os }} Sample
+    env:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.commit_sha }}
+
+      - uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975
+        id: status-check-in-progress
+        env:
+          job_name: NUnit Repo ${{ matrix.dotnet }} - ${{ matrix.os }} Sample
+          commit_sha: ${{ github.event.inputs.commit_sha }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const result = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: process.env.job_name,
+              head_sha: process.env.commit_sha,
+              status: 'in_progress'
+            }).catch((err) => ({status: err.status, response: err.response}));
+            console.log(`The status-check response : ${result.status} Response : ${JSON.stringify(result.response)}`)
+            if (result.status !== 201) {
+              console.log('Failed to create check run')
+            }
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+
+      - name: Strip credential placeholders so env vars take effect
+        # The yml ships with literal YOUR_USERNAME / YOUR_ACCESS_KEY placeholders;
+        # the .NET SDK only falls back to env vars when those lines are absent.
+        shell: bash
+        working-directory: NunitPlaywrightBrowserstack.Tests
+        run: |
+          sed -i.bak '/^userName:/d; /^accessKey:/d' browserstack.yml && rm -f browserstack.yml.bak
+
+      - name: Install dependencies
+        run: dotnet build
+
+      - name: Run sample tests (public bstackdemo)
+        working-directory: NunitPlaywrightBrowserstack.Tests
+        run: dotnet test --filter "Category=sample-test"
+
+      - name: Run local tests (BrowserStack Local + python http.server harness)
+        shell: bash
+        working-directory: NunitPlaywrightBrowserstack.Tests
+        run: |
+          set -u
+          # 1. Stand up a tiny static page with a known <title>.
+          mkdir -p "$RUNNER_TEMP/bs-local-harness"
+          cat > "$RUNNER_TEMP/bs-local-harness/index.html" <<'HTML'
+          <!doctype html>
+          <html><head><title>BrowserStack Local Test</title></head>
+          <body>OK</body></html>
+          HTML
+          ( cd "$RUNNER_TEMP/bs-local-harness" && python3 -m http.server 45454 ) &
+          HTTP_PID=$!
+          trap 'kill "$HTTP_PID" 2>/dev/null || true' EXIT
+          sleep 2
+          # 2. Run only the local scenario; cloud browser reaches the harness through bs-local.com (browserstackLocal:true ships as default).
+          dotnet test --filter "Category=sample-local-test"
+
+      - if: always()
+        uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975
+        id: status-check-completed
+        env:
+          conclusion: ${{ job.status }}
+          job_name: NUnit Repo ${{ matrix.dotnet }} - ${{ matrix.os }} Sample
+          commit_sha: ${{ github.event.inputs.commit_sha }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const result = await github.rest.checks.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: process.env.job_name,
+            head_sha: process.env.commit_sha,
+            status: 'completed',
+            conclusion: process.env.conclusion
+            }).catch((err) => ({status: err.status, response: err.response}));
+            console.log(`The status-check response : ${result.status} Response : ${JSON.stringify(result.response)}`)
+            if (result.status !== 201) {
+              console.log('Failed to create check run')
+            }
