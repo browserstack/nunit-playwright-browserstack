@@ -1,6 +1,7 @@
 namespace NunitPlaywrightBrowserstack.Tests;
 
 [TestFixture]
+[Category("sample-test")]
 [Parallelizable(ParallelScope.Self)]
 public class BStackDemoCartTest : PlaywrightFixtureBase
 {

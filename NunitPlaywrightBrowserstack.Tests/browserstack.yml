@@ -64,10 +64,10 @@ platforms:
 #
 # Example 2 - If you have configured 1 platform and set `parallelsPerPlatform` as 5, a total of 5 (1 * 5) parallel threads will be used on BrowserStack
 #
-# This sample sets parallelsPerPlatform: 2 to demonstrate NUnit's fixture-level
+# This sample sets parallelsPerPlatform: 1 to demonstrate NUnit's fixture-level
 # parallelism on top of the SDK's per-platform fan-out: 4 platforms x 2 fixtures
 # (BStackDemoCart + BStackLocalSample) = 8 concurrent sessions per `dotnet test`.
-parallelsPerPlatform: 2
+parallelsPerPlatform: 1
 
 # ==========================================
 # BrowserStack Local
@@ -75,7 +75,7 @@ parallelsPerPlatform: 2
 # ==========================================
 # Set browserstackLocal to true if your website under test is not accessible publicly over the internet
 # Learn more about how BrowserStack Local works here -> https://www.browserstack.com/docs/automate/selenium/local-testing-introduction
-browserstackLocal: false # <boolean> (Default false)
+browserstackLocal: true # <boolean> (Default false)
 
 # Options to be passed to BrowserStack local in-case of advanced configurations
 # browserStackLocalOptions:

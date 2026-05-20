@@ -15,7 +15,7 @@ This sample shows how to run [NUnit](https://nunit.org/) + [Playwright](https://
 
 ```sh
 cd NunitPlaywrightBrowserstack.Tests
-dotnet test --filter "FullyQualifiedName~BStackDemoCart"
+dotnet test --filter "Category=sample-test"
 ```
 
 The sample runs `BStackDemoCartTest` across all four platforms declared in `browserstack.yml` (Windows 11 / Chrome, macOS / WebKit, Windows 11 / Firefox, Windows 11 / Edge) in parallel.
@@ -24,7 +24,7 @@ Understand how many parallel sessions you need by using our [Parallel Test Calcu
 
 ### Testing a private host (BrowserStack Local)
 
-If your app lives on `localhost`, a staging host, or behind a firewall, set `browserstackLocal: true` in `browserstack.yml` and run the local fixture:
+If your app lives on `localhost`, a staging host, or behind a firewall, run the local fixture (`browserstackLocal: true` is already set in `browserstack.yml`):
 
 ```sh
 # 1. Stand up a tiny static page locally on port 45454 (any HTTP server works)
@@ -36,11 +36,9 @@ cat > index.html <<'HTML'
 HTML
 python3 -m http.server 45454 &
 
-# 2. Flip the toggle in browserstack.yml: browserstackLocal: true
-
-# 3. Run the local fixture
+# 2. Run the local fixture
 cd ../NunitPlaywrightBrowserstack.Tests
-dotnet test --filter "FullyQualifiedName~BStackLocalSample"
+dotnet test --filter "Category=sample-local-test"
 ```
 
 The SDK starts and stops the BrowserStack Local tunnel for you -- no manual binary download or lifecycle management. The cloud browser reaches your local server through `http://bs-local.com:<port>/`.
@@ -74,7 +72,7 @@ This sample stacks two layers of parallelism:
 | SDK platform fan-out | `browserstack.yml` -> `platforms` + `parallelsPerPlatform` | The SDK spawns one NUnit run per `(platform x parallelsPerPlatform)` cell |
 | NUnit fixture-level parallelism | `AssemblyInfo.cs` -> `[assembly: Parallelizable(ParallelScope.Fixtures)]` | Within each NUnit run, `[TestFixture]` classes execute concurrently |
 
-With the shipped defaults (4 platforms x `parallelsPerPlatform: 2`, 2 fixtures: `BStackDemoCartTest` + `BStackLocalSampleTest`), a single `dotnet test` produces **up to 8 concurrent BrowserStack sessions**. Tune `parallelsPerPlatform` and `LevelOfParallelism` in `AssemblyInfo.cs` to match your BrowserStack plan.
+With the shipped defaults (4 platforms x `parallelsPerPlatform: 1`, 2 fixtures: `BStackDemoCartTest` + `BStackLocalSampleTest` running in parallel via NUnit), a single `dotnet test` produces **up to 8 concurrent BrowserStack sessions**. Tune `parallelsPerPlatform` and `LevelOfParallelism` in `AssemblyInfo.cs` to match your BrowserStack plan.
 
 ## Repo layout
 
