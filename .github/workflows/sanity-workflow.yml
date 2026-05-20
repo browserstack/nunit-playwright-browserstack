@@ -1,10 +1,10 @@
 # Sanity workflow that verifies the NUnit + Playwright BrowserStack SDK sample
 # against a full commit id, mirroring browserstack/xunit-reqnroll-playwright-browserstack.
-# Two test runs:
-#   1. Public bstackdemo scenario  (browserstackLocal: false in yml).
-#   2. BrowserStack Local scenario (yml flipped to true; a python http.server
+# Two test runs (yml ships with browserstackLocal: true; both runs benefit from it):
+#   1. Public bstackdemo scenario  (Category=sample-test).
+#   2. BrowserStack Local scenario (Category=sample-local-test) — a python http.server
 #      hosts a tiny title-matching page on port 45454, the SDK starts the tunnel,
-#      and the test asserts that the cloud browser sees that page through bs-local.com).
+#      and the test asserts that the cloud browser sees that page through bs-local.com.
 
 name: NUnit Playwright SDK sanity workflow on workflow_dispatch
 
@@ -76,7 +76,7 @@ jobs:
 
       - name: Run sample tests (public bstackdemo)
         working-directory: NunitPlaywrightBrowserstack.Tests
-        run: dotnet test --filter "FullyQualifiedName~BStackDemoCart"
+        run: dotnet test --filter "Category=sample-test"
 
       - name: Run local tests (BrowserStack Local + python http.server harness)
         shell: bash
@@ -94,10 +94,8 @@ jobs:
           HTTP_PID=$!
           trap 'kill "$HTTP_PID" 2>/dev/null || true' EXIT
           sleep 2
-          # 2. Flip the SDK Local toggle so the SDK starts/stops the tunnel.
-          sed -i.bak 's/^browserstackLocal: false/browserstackLocal: true/' browserstack.yml && rm -f browserstack.yml.bak
-          # 3. Run only the local scenario; cloud browser reaches the harness through bs-local.com.
-          dotnet test --filter "FullyQualifiedName~BStackLocalSample"
+          # 2. Run only the local scenario; cloud browser reaches the harness through bs-local.com (browserstackLocal:true ships as default).
+          dotnet test --filter "Category=sample-local-test"
 
       - if: always()
         uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975
